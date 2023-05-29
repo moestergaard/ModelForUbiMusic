@@ -12,56 +12,6 @@ import libsvm.svm_parameter;
 import libsvm.svm_problem;
 
 public class SVMClassifier {
-
-    public static double SVMOwnDataSet(String[] locations, String filename, double partOfData) {
-        double[][] trainingSamplesOverall;
-        double[][] testSamplesOverall;
-        int[] trainingLabelsOverall;
-        int[] testLabelsOverall;
-
-        Object[] result = getSamplesAndLabelsFromOneFile(locations, filename, partOfData);
-
-        trainingSamplesOverall = (double[][]) result[0];
-        testSamplesOverall = (double[][]) result[1];
-        trainingLabelsOverall = (int[]) result[2];
-        testLabelsOverall = (int[]) result[3];
-
-        Object[] modelResult = bestModelSVM(trainingSamplesOverall, trainingLabelsOverall);
-        svm_model bestModel = (svm_model) modelResult[0];
-        double score = (double) modelResult[1];
-
-        if (partOfData == 1)
-            return score;
-
-        score = bestModelSVMTest(bestModel, testSamplesOverall, testLabelsOverall);
-        return score;
-    }
-
-    public static Object[] getSamplesAndLabelsFromOneFile(String[] locations, String filename, double partOfData) {
-        Object[] result = new Object[4];
-
-        Object[] distinctBSSIDDataPoints = extractDistinctBSSIDAndNumberOfDataPoints(locations, filename);
-        String[] distinctBSSID = (String[]) distinctBSSIDDataPoints[0];
-        int dataPoints = (int) distinctBSSIDDataPoints[1];
-
-        Object[] dataResult = extractData(locations, filename, distinctBSSID, dataPoints);
-        double[][] samples = (double[][]) dataResult[0];
-        int[] labels = (int[]) dataResult[1];
-
-        Object[] splitResult = randomSplitSamplesAndLabels(samples, labels, partOfData);
-        double[][] trainingSamplesOverall = (double[][]) splitResult[0];
-        double[][] testSamplesOverall = (double[][]) splitResult[1];
-        int[] trainingLabelsOverall = (int[]) splitResult[2];
-        int[] testLabelsOverall = (int[]) splitResult[3];
-
-        result[0] = trainingSamplesOverall;
-        result[1] = testSamplesOverall;
-        result[2] = trainingLabelsOverall;
-        result[3] = testLabelsOverall;
-
-        return result;
-    }
-
     public static Object[] extractDistinctBSSIDAndNumberOfDataPoints(String[] locations, String filename) {
         List<String> distinctBSSIDList = new ArrayList<>();
         int dataPoints = 0;
@@ -307,23 +257,11 @@ public class SVMClassifier {
             prob.y[i] = labelsTrainingSamples[i];
         }
 
-        /*
-        svm_parameter param = new svm_parameter();
-        param.svm_type = svm_parameter.C_SVC;
-        param.kernel_type = svm_parameter.RBF;
-        param.C = 1;
-        param.cache_size = 20000;
-
-         */
-
-        // svm_parameter param = new svm_parameter('-t 2 -s 0 -b 1 -c 1 -w1 1 -w-1 1')
-
-
         svm_parameter param = new svm_parameter();
         param.svm_type = svm_parameter.C_SVC;
         param.kernel_type = svm_parameter.RBF;
         param.gamma = 0.000014522741150737315;
-        param.C = 1;
+        param.C = 100;
         param.cache_size = 20000;
         param.probability = 0;
 
@@ -336,10 +274,22 @@ public class SVMClassifier {
             param.weight_label[i] = i + 1;
             param.weight[i] = classWeights[i];
         }
-
-
-
         svm.svm_set_print_string_function(s -> {});
+
+        final double[] target = new double[prob.l];
+        System.out.println("Target accuracy: " + target);
+
+        svm.svm_cross_validation(prob, param, 5, target);
+
+        // Work out how many classifications were correct.
+        int totalCorrect = 0;
+        for( int i = 0; i < prob.l; i++ )
+            if( target[i] == prob.y[i] )
+                totalCorrect++;
+        // Calculate the accuracy
+        final double accuracy = 100.0 * totalCorrect / prob.l;
+        System.out.print("Cross Validation Accuracy = "+accuracy+"%\n");
+        // System.out.println("Target accuracy after cross validation: " + target);
 
         return svm.svm_train(prob, param);
     }
@@ -362,6 +312,12 @@ public class SVMClassifier {
         return (double) correct / testSamples.length;
     }
 
+    /**
+     * Tested here before used in UbiMusic
+     * @param model
+     * @param datapoint
+     * @return
+     */
     public static double predict(svm_model model, double[] datapoint) {
         svm_node[] nodes = new svm_node[datapoint.length];
 
