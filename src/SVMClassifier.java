@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -10,6 +11,7 @@ import libsvm.svm_model;
 import libsvm.svm_node;
 import libsvm.svm_parameter;
 import libsvm.svm_problem;
+
 
 public class SVMClassifier {
     public static Object[] extractDistinctBSSIDAndNumberOfDataPoints(String[] locations, String filename) {
@@ -176,6 +178,10 @@ public class SVMClassifier {
         double bestScore = Double.NEGATIVE_INFINITY;
         svm_model bestModel = null;
 
+        Object[] newMatrices = shuffleMatrices(samples, labels);
+        samples = (double[][]) newMatrices[0];
+        labels = (int[]) newMatrices[1];
+
         for (int i = 1; i <= 5; i++) {
             Object[] splitResult = deterministicSplitMatrix(samples, labels, 1.0 / 5, i);
             double[][] trainingSamples = (double[][]) splitResult[0];
@@ -201,42 +207,43 @@ public class SVMClassifier {
     }
 
     public static Object[] deterministicSplitMatrix(double[][] samples, int[] labels, double ratio, int splitNumber) {
-        int m = samples.length;
-        int trainingSize = (int) Math.ceil(m * ratio);
-        int startIndex = (splitNumber - 1) * trainingSize;
-        int endIndex = splitNumber * trainingSize;
-        if (endIndex > m) {
-            endIndex = m;
-        }
+        int numRows = samples.length;
+        int numCols = samples[0].length;
+        int numSamples = numRows;
 
-        double[][] trainingSamples = new double[endIndex - startIndex][samples[0].length];
-        double[][] testSamples = new double[m - (endIndex - startIndex)][samples[0].length];
-        int[] trainingLabels = new int[endIndex - startIndex];
-        int[] testLabels = new int[m - (endIndex - startIndex)];
+        int numSplits = (int) Math.ceil(1.0 / ratio);
+
+        int numTrainRows = (int) Math.ceil((numSplits - 1) * ratio * numRows);
+        int numTestRows = numRows - numTrainRows;
+
+        int startRow = numTestRows * (splitNumber - 1);
+        // int startRow = (int) Math.ceil((splitNumber - 1) * ratio * numRows);
+        int endRow = numTestRows * splitNumber;
+        // int endRow = startRow + numTrainRows;
+
+        double[][] trainingSamples = new double[numTrainRows][numCols];
+        double[][] testSamples = new double[numTestRows][numCols];
+        int[] trainingLabels = new int[numTrainRows];
+        int[] testLabels = new int[numTestRows];
 
         int trainingIndex = 0;
         int testIndex = 0;
 
-        for (int i = 0; i < m; i++) {
-            if (i >= startIndex && i < endIndex) {
-                trainingSamples[trainingIndex] = samples[i];
-                trainingLabels[trainingIndex] = labels[i];
-                trainingIndex++;
-            } else {
-                testSamples[testIndex] = samples[i];
+        for (int i = 0; i < numSamples; i++) {
+            if (i >= startRow && i < endRow) {
+                testSamples[testIndex] = Arrays.copyOf(samples[i], numCols);
                 testLabels[testIndex] = labels[i];
                 testIndex++;
+            } else {
+                trainingSamples[trainingIndex] = Arrays.copyOf(samples[i], numCols);
+                trainingLabels[trainingIndex] = labels[i];
+                trainingIndex++;
             }
         }
 
-        Object[] result = new Object[4];
-        result[0] = trainingSamples;
-        result[1] = testSamples;
-        result[2] = trainingLabels;
-        result[3] = testLabels;
-
-        return result;
+        return new Object[] { trainingSamples, testSamples, trainingLabels, testLabels };
     }
+
 
     public static svm_model fitModel(double[][] trainingSamples, int[] labelsTrainingSamples) {
         svm_problem prob = new svm_problem();
@@ -261,7 +268,7 @@ public class SVMClassifier {
         param.svm_type = svm_parameter.C_SVC;
         param.kernel_type = svm_parameter.RBF;
         param.gamma = 0.000014522741150737315;
-        param.C = 100;
+        param.C = 10;
         param.cache_size = 20000;
         param.probability = 0;
 
@@ -274,8 +281,10 @@ public class SVMClassifier {
             param.weight_label[i] = i + 1;
             param.weight[i] = classWeights[i];
         }
-        svm.svm_set_print_string_function(s -> {});
 
+        svm.svm_set_print_string_function( e -> {});
+
+        /*
         final double[] target = new double[prob.l];
         System.out.println("Target accuracy: " + target);
 
@@ -289,7 +298,12 @@ public class SVMClassifier {
         // Calculate the accuracy
         final double accuracy = 100.0 * totalCorrect / prob.l;
         System.out.print("Cross Validation Accuracy = "+accuracy+"%\n");
+
+         */
         // System.out.println("Target accuracy after cross validation: " + target);
+
+        // svm_model bestModel = bestModelSVM();
+
 
         return svm.svm_train(prob, param);
     }
@@ -329,5 +343,44 @@ public class SVMClassifier {
         }
 
         return svm.svm_predict(model, nodes);
+    }
+
+    public static Object[] shuffleMatrices(double[][] testSamples, int[] labelsTestSample) {
+        int rows = testSamples.length;
+        int cols = testSamples[0].length;
+
+        double[][] combinedMatrix = new double[rows][cols + 1];
+
+        // Combining the test samples and labels horizontally
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                combinedMatrix[i][j] = testSamples[i][j];
+            }
+            combinedMatrix[i][cols] = labelsTestSample[i];
+        }
+
+        // Shuffling the combined matrix
+        Random rand = new Random();
+        for (int i = rows - 1; i > 0; i--) {
+            int j = rand.nextInt(i + 1);
+            double[] temp = combinedMatrix[i];
+            combinedMatrix[i] = combinedMatrix[j];
+            combinedMatrix[j] = temp;
+        }
+
+        // Splitting the shuffled matrix back into separate test samples and labels
+        double[][] shuffledTestSamples = new double[rows][cols];
+        int[] shuffledLabelsTestSample = new int[rows];
+
+        for (int i = 0; i < rows; i++) {
+            shuffledTestSamples[i] = Arrays.copyOfRange(combinedMatrix[i], 0, cols);
+            shuffledLabelsTestSample[i] = (int) combinedMatrix[i][cols];
+        }
+
+        Object[] result = new Object[2];
+        result[0] = shuffledTestSamples;
+        result[1] = shuffledLabelsTestSample;
+
+        return result;
     }
 }

@@ -9,8 +9,9 @@ public class Main {
         SVMClassifier svmClassifier = new SVMClassifier();
         String[] locations = {"Kontor", "Stue", "Køkken"};
         // String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/Data/WifiData230424_17-21.txt";
-        String dataSet = "/Users/signethomsen/IdeaProjects/ModelUbiMusic/src/WifiData230424_17-21.txt";
-        double partOfData = 1.0 / 3.0; // 15 minutes
+        // String dataSet = "/Users/signethomsen/IdeaProjects/ModelUbiMusic/src/WifiData230424_17-21.txt";
+        String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
+        double partOfData = 1.0; // / 3.0; // 15 minutes
 
         Object[] distinctBSSIDAndDataPoints = svmClassifier.extractDistinctBSSIDAndNumberOfDataPoints(locations, dataSet);
         String[] distinctBSSID = (String[]) distinctBSSIDAndDataPoints[0];
@@ -26,7 +27,12 @@ public class Main {
         int[] trainingLabelsOverall = (int[]) splitSamplesAndLabels[2];
         int[] testLabelsOverall = (int[]) splitSamplesAndLabels[3];
 
-        svm_model model = svmClassifier.fitModel(trainingSamplesOverall, trainingLabelsOverall);
+        Object[] result = svmClassifier.bestModelSVM(trainingSamplesOverall, trainingLabelsOverall);
+        svm_model model = (svm_model) result[0];
+        double score = (double) result[1];
+
+
+        // svm_model model = svmClassifier.fitModel(trainingSamplesOverall, trainingLabelsOverall);
 
         System.out.println("distinctBSSID: ");
         StringBuilder distinctBSSIDstring = new StringBuilder();
@@ -36,10 +42,12 @@ public class Main {
         System.out.println(distinctBSSIDstring);
         System.out.println("len(distinctBSSID): " + distinctBSSID.length);
 
-        double score = svmClassifier.bestModelSVMTest(model, testSamplesOverall, testLabelsOverall);
+        if (partOfData != 1.0) {
+            score = svmClassifier.bestModelSVMTest(model, testSamplesOverall, testLabelsOverall);
+        }
         System.out.println("Accuracy testing data: " + score);
 
-        storeModel(model, "svm_model6.json");
+        storeModel(model, "svm_model8.json");
     }
 
     public static void storeModel(svm_model model, String filename) {
