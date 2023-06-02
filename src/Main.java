@@ -6,18 +6,21 @@ import java.io.ObjectOutputStream;
 
 public class Main {
     public static void main(String[] args) {
+        IFileSystem fileSystem = new FileSystem();
         SVMClassifier svmClassifier = new SVMClassifier();
+        ExtractData extractData = new ExtractData();
         String[] locations = {"Kontor", "Stue", "Køkken"};
         // String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/Data/WifiData230424_17-21.txt";
         // String dataSet = "/Users/signethomsen/IdeaProjects/ModelUbiMusic/src/WifiData230424_17-21.txt";
-        String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
+        // String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
+        String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/Data/2023-06-02T13_41_29.390439.txt";
         double partOfData = 1.0; // / 3.0; // 15 minutes
 
-        Object[] distinctBSSIDAndDataPoints = svmClassifier.extractDistinctBSSIDAndNumberOfDataPoints(locations, dataSet);
+        Object[] distinctBSSIDAndDataPoints = extractData.extractDistinctBSSIDAndNumberOfDataPoints(locations, dataSet);
         String[] distinctBSSID = (String[]) distinctBSSIDAndDataPoints[0];
         int dataPoints = (int) distinctBSSIDAndDataPoints[1];
 
-        Object[] samplesAndLabels = svmClassifier.extractData(locations, dataSet, distinctBSSID, dataPoints);
+        Object[] samplesAndLabels = extractData.extractData(locations, dataSet, distinctBSSID, dataPoints);
         double[][] samples = (double[][]) samplesAndLabels[0];
         int[] labels = (int[]) samplesAndLabels[1];
 
@@ -47,18 +50,10 @@ public class Main {
         }
         System.out.println("Accuracy testing data: " + score);
 
-        storeModel(model, "svm_model8.json");
+        fileSystem.storeModel(model, "svm_model9.json");
     }
 
-    public static void storeModel(svm_model model, String filename) {
-        try {
-            ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(filename));
-            outputStream.writeObject(model);
-            outputStream.close();
-        } catch (IOException e) {
-            System.err.println("Error storing SVM model: " + e.getMessage());
-        }
-    }
+
 }
 
 
