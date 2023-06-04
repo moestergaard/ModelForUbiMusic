@@ -12,9 +12,9 @@ public class Main {
         String[] locations = {"Kontor", "Stue", "Køkken"};
         // String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/Data/WifiData230424_17-21.txt";
         // String dataSet = "/Users/signethomsen/IdeaProjects/ModelUbiMusic/src/WifiData230424_17-21.txt";
-        // String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
-        String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/Data/2023-06-02T13_41_29.390439.txt";
-        double partOfData = 1.0; // / 3.0; // 15 minutes
+        String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
+        // String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/Data/2023-06-02T13_41_29.390439.txt";
+        double partOfData = 1.0 / 3.0; // 15 minutes
 
         Object[] distinctBSSIDAndDataPoints = extractData.extractDistinctBSSIDAndNumberOfDataPoints(locations, dataSet);
         String[] distinctBSSID = (String[]) distinctBSSIDAndDataPoints[0];
@@ -50,7 +50,7 @@ public class Main {
         }
         System.out.println("Accuracy testing data: " + score);
 
-        fileSystem.storeModel(model, "svm_model9.json");
+        fileSystem.storeModel(model, "svm_model10.json");
     }
 
 
