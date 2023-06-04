@@ -8,8 +8,8 @@ public class Main {
         ExtractData extractData = new ExtractData(matrixManipulation);
 
         String[] locations = {"Kontor", "Stue", "Køkken"};
-        String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
-        double partOfData = 1.0;
+        String dataSet = "/Users/signethomsen/IdeaProjects/ModelForUbiMusic/src/WifiData230424_17-21.txt";
+        double partOfData = 1.0/9.0;
 
         Object[] distinctBSSIDAndDataPoints = extractData.extractDistinctBSSIDAndNumberOfDataPoints(locations, dataSet);
         String[] distinctBSSID = (String[]) distinctBSSIDAndDataPoints[0];
@@ -36,7 +36,7 @@ public class Main {
         printDistinctBSSID(distinctBSSID);
         System.out.println("Nøjagtighed trænet model: " + score);
 
-        fileSystem.storeModel(trainedModel, "svm_model11.json");
+        fileSystem.storeModel(trainedModel, "svm_model.json");
     }
 
     private static void printDistinctBSSID(String[] distinctBSSID) {
