@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExtractData {
-    public static Object[] extractDistinctBSSIDAndNumberOfDataPoints(String[] locations, String filename) {
+    public Object[] extractDistinctBSSIDAndNumberOfDataPoints(String[] locations, String filename) {
         List<String> distinctBSSIDList = new ArrayList<>();
         int dataPoints = 0;
         boolean dataPointIncluded = false;
@@ -44,7 +44,7 @@ public class ExtractData {
         return result;
     }
 
-    public static Object[] extractData(String[] locations, String filename, String[] distinctBSSID, int numberOfSamples) {
+    public Object[] extractData(String[] locations, String filename, String[] distinctBSSID, int numberOfSamples) {
         double[][] samples = new double[numberOfSamples][distinctBSSID.length];
         int[] labels = new int[numberOfSamples];
 
