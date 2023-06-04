@@ -3,8 +3,7 @@ import java.util.Random;
 
 public class MatrixManipulation implements IMatrixManipulation {
 
-    public double[][] changeMatrix(double[][] samples, int index, String[] distinctBSSID, String currentBSSID,
-                                          String resultLevel) {
+    public double[][] changeMatrix(double[][] samples, int index, String[] distinctBSSID, String currentBSSID, String resultLevel) {
         for (int i = 0; i < distinctBSSID.length; i++) {
             if (distinctBSSID[i].equals(currentBSSID)) {
                 samples[index][i] = Double.parseDouble(resultLevel);
@@ -142,7 +141,7 @@ public class MatrixManipulation implements IMatrixManipulation {
         return result;
     }
 
-    private static boolean contains(int[] arr, int target) {
+    private boolean contains(int[] arr, int target) {
         for (int i : arr) {
             if (i == target) {
                 return true;

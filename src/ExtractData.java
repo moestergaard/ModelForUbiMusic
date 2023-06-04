@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExtractData {
+    IMatrixManipulation matrixManipulation;
+
+    public ExtractData(IMatrixManipulation matrixManipulation) {
+        this.matrixManipulation = matrixManipulation;
+    }
+
     public Object[] extractDistinctBSSIDAndNumberOfDataPoints(String[] locations, String filename) {
         List<String> distinctBSSIDList = new ArrayList<>();
         int dataPoints = 0;
@@ -79,7 +85,6 @@ public class ExtractData {
                 if (line.contains("ResultLevel")) {
                     if (dataPointIncluded) {
                         String[] resultLevel = line.split(": ")[1].split(" ");
-                        MatrixManipulation matrixManipulation = new MatrixManipulation();
                         samples = matrixManipulation.changeMatrix(samples, index, distinctBSSID, currentBSSID, resultLevel[0]);
                     }
                 }

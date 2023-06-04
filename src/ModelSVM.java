@@ -7,7 +7,7 @@ public class ModelSVM implements IModel{
         this.matrixManipulation = matrixManipulation;
     }
 
-    public Object[] bestModelSVM(double[][] samples, int[] labels) {
+    public Object[] bestModel(double[][] samples, int[] labels) {
         double bestScore = Double.NEGATIVE_INFINITY;
         svm_model bestModel = null;
 
@@ -24,7 +24,7 @@ public class ModelSVM implements IModel{
 
             svm_model model = fitModel(trainingSamples, trainingLabels);
 
-            double score = bestModelSVMTest(model, testSamples, testLabels);
+            double score = modelTest(model, testSamples, testLabels);
 
             if (score > bestScore) {
                 bestScore = score;
@@ -39,7 +39,7 @@ public class ModelSVM implements IModel{
         return result;
     }
 
-    public svm_model fitModel(double[][] trainingSamples, int[] labelsTrainingSamples) {
+    private svm_model fitModel(double[][] trainingSamples, int[] labelsTrainingSamples) {
         svm_problem prob = new svm_problem();
         int dataSize = trainingSamples.length;
         prob.l = dataSize;
@@ -61,13 +61,13 @@ public class ModelSVM implements IModel{
         svm_parameter param = new svm_parameter();
         param.svm_type = svm_parameter.C_SVC;
         param.kernel_type = svm_parameter.RBF;
-        param.gamma = 0.000014522741150737315;
+        param.gamma = 0.000015;
         param.C = 10;
         param.cache_size = 20000;
         param.probability = 0;
 
         // Set class weights for balanced weight between classes
-        double[] classWeights = {1.0, 1.0, 1.0};  // Adjust weights based on the number of classes
+        double[] classWeights = {1.0, 1.0, 1.0};
         param.nr_weight = classWeights.length;
         param.weight_label = new int[param.nr_weight];
         param.weight = new double[param.nr_weight];
@@ -78,41 +78,15 @@ public class ModelSVM implements IModel{
 
         svm.svm_set_print_string_function(e -> {});
 
-        /*
-        final double[] target = new double[prob.l];
-        System.out.println("Target accuracy: " + target);
-
-        svm.svm_cross_validation(prob, param, 5, target);
-
-        // Work out how many classifications were correct.
-        int totalCorrect = 0;
-        for( int i = 0; i < prob.l; i++ )
-            if( target[i] == prob.y[i] )
-                totalCorrect++;
-        // Calculate the accuracy
-        final double accuracy = 100.0 * totalCorrect / prob.l;
-        System.out.print("Cross Validation Accuracy = "+accuracy+"%\n");
-
-         */
-        // System.out.println("Target accuracy after cross validation: " + target);
-
-        // svm_model bestModel = bestModelSVM();
-
-
         return svm.svm_train(prob, param);
     }
 
-    private double bestModelSVMTest(svm_model model, double[][] testSamples, int[] labelsTestSamples) {
+    public double modelTest(svm_model model, double[][] testSamples, int[] labelsTestSamples) {
         int correct = 0;
         for (int i = 0; i < testSamples.length; i++) {
-            svm_node[] sample = new svm_node[testSamples[i].length];
-            for (int j = 0; j < testSamples[i].length; j++) {
-                svm_node node = new svm_node();
-                node.index = j + 1;
-                node.value = testSamples[i][j];
-                sample[j] = node;
-            }
-            double prediction = svm.svm_predict(model, sample);
+
+            double prediction = predict(model, testSamples[i]);
+
             if (prediction == labelsTestSamples[i]) {
                 correct++;
             }

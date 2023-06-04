@@ -5,9 +5,7 @@ public class Main {
         IFileSystem fileSystem = new FileSystem();
         IMatrixManipulation matrixManipulation = new MatrixManipulation();
         IModel model = new ModelSVM(matrixManipulation);
-        ExtractData extractData = new ExtractData();
-//        SVMClassifier svmClassifier = new SVMClassifier();
-
+        ExtractData extractData = new ExtractData(matrixManipulation);
 
         String[] locations = {"Kontor", "Stue", "Køkken"};
         String dataSet = "/Users/signethomsen/Desktop/Martin - Computer/BachelorProjekt/DataBehandling/2023-05-29T16_43_20.122379.txt";
@@ -27,33 +25,28 @@ public class Main {
         int[] trainingLabelsOverall = (int[]) splitSamplesAndLabels[2];
         int[] testLabelsOverall = (int[]) splitSamplesAndLabels[3];
 
-        Object[] result = model.bestModelSVM(trainingSamplesOverall, trainingLabelsOverall);
+        Object[] result = model.bestModel(trainingSamplesOverall, trainingLabelsOverall);
         svm_model trainedModel = (svm_model) result[0];
         double score = (double) result[1];
 
+        if (partOfData != 1.0) {
+            score = model.modelTest(trainedModel, testSamplesOverall, testLabelsOverall);
+        }
 
-        // svm_model model = svmClassifier.fitModel(trainingSamplesOverall, trainingLabelsOverall);
+        printDistinctBSSID(distinctBSSID);
+        System.out.println("Nøjagtighed trænet model: " + score);
 
-        System.out.println("distinctBSSID: ");
+        fileSystem.storeModel(trainedModel, "svm_model11.json");
+    }
+
+    private static void printDistinctBSSID(String[] distinctBSSID) {
         StringBuilder distinctBSSIDstring = new StringBuilder();
         for (String bssid : distinctBSSID) {
             distinctBSSIDstring.append("\"").append(bssid).append("\", ");
         }
         System.out.println(distinctBSSIDstring);
-        System.out.println("len(distinctBSSID): " + distinctBSSID.length);
-
-        /*
-        if (partOfData != 1.0) {
-            score = model.bestModelSVMTest(model, testSamplesOverall, testLabelsOverall);
-        }
-         */
-
-        System.out.println("Accuracy testing data: " + score);
-
-        fileSystem.storeModel(trainedModel, "svm_model10.json");
+        System.out.println("Antal distinkte BSSID: " + distinctBSSID.length);
     }
-
-
 }
 
 
