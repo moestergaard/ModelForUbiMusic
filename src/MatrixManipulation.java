@@ -16,7 +16,6 @@ public class MatrixManipulation implements IMatrixManipulation {
     public Object[] deterministicSplitMatrix(double[][] samples, int[] labels, double ratio, int splitNumber) {
         int numRows = samples.length;
         int numCols = samples[0].length;
-        int numSamples = numRows;
 
         int numSplits = (int) Math.ceil(1.0 / ratio);
 
@@ -24,9 +23,7 @@ public class MatrixManipulation implements IMatrixManipulation {
         int numTestRows = numRows - numTrainRows;
 
         int startRow = numTestRows * (splitNumber - 1);
-        // int startRow = (int) Math.ceil((splitNumber - 1) * ratio * numRows);
         int endRow = numTestRows * splitNumber;
-        // int endRow = startRow + numTrainRows;
 
         double[][] trainingSamples = new double[numTrainRows][numCols];
         double[][] testSamples = new double[numTestRows][numCols];
@@ -36,7 +33,7 @@ public class MatrixManipulation implements IMatrixManipulation {
         int trainingIndex = 0;
         int testIndex = 0;
 
-        for (int i = 0; i < numSamples; i++) {
+        for (int i = 0; i < numRows; i++) {
             if (i >= startRow && i < endRow) {
                 testSamples[testIndex] = Arrays.copyOf(samples[i], numCols);
                 testLabels[testIndex] = labels[i];
